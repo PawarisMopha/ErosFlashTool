@@ -12,22 +12,31 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
     - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      run: |
+        if [ -f "gradlew" ]; then chmod +x gradlew; fi
+        find . -name "gradlew" -exec chmod +x {} +
 
     - name: Build with Gradle
-      run: ./gradlew assembleDebug
+      run: |
+        if [ -f "gradlew" ]; then
+          ./gradlew assembleDebug
+        else
+          find . -name "gradlew" -exec {} assembleDebug \;
+        fi
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: ErosFlashTool-Debug
-        path: app/build/outputs/apk/debug/*.apk
+        path: "**/build/outputs/apk/debug/*.apk"
+
